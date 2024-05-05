@@ -30,8 +30,9 @@ jobs:
           push: true
           tags: wanassanan/itb-kk-database:latest
 
-  SSH-Remote-Deploy-backend:
+  SSH-Remote-Deploy-Database:
     runs-on: ubuntu-latest
+    needs: Docker-Image-Build
     steps: 
         - name: executing remote ssh commands using password
           uses: appleboy/ssh-action@master
