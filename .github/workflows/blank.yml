@@ -1,0 +1,23 @@
+name: Database
+run-name: "@${{ github.actor }} was pushed up a new update. Auto-Redeploy START!"
+on: 
+  push:
+    branches:
+    - 'main'
+    - 'develop/**'
+  
+jobs:
+  Docker-Image-Build:
+    runs-on: ubuntu-latest
+    # if: ${{contains(github.event.head_commit.message, 'Deploy DB')}} 
+    steps: 
+        - name: executing remote ssh commands using password
+          uses: appleboy/ssh-action@master
+          with:
+            host: ${{ secrets.SSH_HOST }}
+            port: ${{ secrets.SSH_PORT }}
+            username: ${{ secrets.SSH_USER }}
+            password: ${{ secrets.SSH_PASSWORD }}
+            script: |
+              docker pull wanassanan/itb-kk-backend:latest
+              docker compose -f ./INT221/project/docker-compose.yml up -d --no-deps --build database
