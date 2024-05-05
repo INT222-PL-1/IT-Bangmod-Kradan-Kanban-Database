@@ -8,7 +8,7 @@ on:
   
 jobs:
 
-    Docker-Image-Build:
+  Docker-Image-Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -30,7 +30,7 @@ jobs:
           push: true
           tags: wanassanan/itb-kk-database:latest
 
-    SSH-Remote-Deploy-backend:
+  SSH-Remote-Deploy-backend:
     runs-on: ubuntu-latest
     steps: 
         - name: executing remote ssh commands using password
