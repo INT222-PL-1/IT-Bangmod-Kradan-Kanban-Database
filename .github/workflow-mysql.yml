@@ -28,11 +28,10 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: wanassanan/itb-kk-backend:latest
+          tags: wanassanan/itb-kk-database:latest
 
     SSH-Remote-Deploy-backend:
     runs-on: ubuntu-latest
-    # if: ${{contains(github.event.head_commit.message, 'Deploy DB')}} 
     steps: 
         - name: executing remote ssh commands using password
           uses: appleboy/ssh-action@master
@@ -42,5 +41,5 @@ jobs:
             username: ${{ secrets.SSH_USER }}
             password: ${{ secrets.SSH_PASSWORD }}
             script: |
-              docker pull wanassanan/itb-kk-backend:latest
+              docker pull wanassanan/itb-kk-database:latest
               docker compose -f ./INT221/project/docker-compose.yml up -d --no-deps --build database
