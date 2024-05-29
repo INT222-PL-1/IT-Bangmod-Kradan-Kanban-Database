@@ -37,6 +37,7 @@ CREATE TABLE status (
 DROP TRIGGER IF EXISTS updateFixedStatus;
 
 DELIMITER //
+
 CREATE TRIGGER updateFixedStatus
 BEFORE UPDATE
 ON status
@@ -46,24 +47,27 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Cannot update: this status is fixed status cause it cannot update or delete';
     END IF;
-END
-// DELIMITER ; 
+END//
+
+DELIMITER ; 
 
 
 DROP TRIGGER IF EXISTS deleteFixedStatus;
 
 DELIMITER //
+
 CREATE TRIGGER deleteFixedStatus
 BEFORE DELETE
 ON status
 FOR EACH ROW 
 BEGIN
     IF OLD.is_fixed_status = true THEN
-	SIGNAL SQLSTATE '45000'
+	    SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Cannot delete: this status is fixed status cause it cannot update or delete';
     END IF;
-END
-// DELIMITER ;
+END//
+
+DELIMITER ;
 
 INSERT INTO status (
     statusName,
@@ -132,4 +136,4 @@ CREATE USER 'itb-kk-be' identified WITH mysql_native_password BY 'itb-kk';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`tasks` TO 'itb-kk-be'@'%';  
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`tasksV2` TO 'itb-kk-be'@'%';  
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`status` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`board` TO 'itb-kk-be'@'%';  
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`board` TO 'itb-kk-be'@'%';
