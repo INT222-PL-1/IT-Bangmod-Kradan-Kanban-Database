@@ -1,3 +1,4 @@
+CREATE DATABASE IF NOT EXISTS itb-kk;
 USE `itb-kk`;
 
 DROP TABLE IF EXISTS tasks;
