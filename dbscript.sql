@@ -47,7 +47,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Cannot update: this status is fixed status cause it cannot update or delete';
     END IF;
 END
-// DELIMITER; 
+// DELIMITER ; 
 
 
 DROP TRIGGER IF EXISTS deleteFixedStatus;
@@ -63,7 +63,7 @@ BEGIN
         SET MESSAGE_TEXT = 'Cannot delete: this status is fixed status cause it cannot update or delete';
     END IF;
 END
-// DELIMITER; 
+// DELIMITER ;
 
 INSERT INTO status (
     statusName,
@@ -120,9 +120,9 @@ CREATE USER 'tinnapop023'@'%' identified WITH mysql_native_password BY 'both-pl-
 CREATE USER 'wanassanan070'@'%' identified WITH mysql_native_password BY 'ploy-pl-1.mysql';
 CREATE USER 'sittha084'@'%' identified WITH mysql_native_password BY 'mink-pl-1.mysql';
 
-GRANT ROLE 'user' TO 'tinnapop023'@'%';
-GRANT ROLE 'user' TO 'wanassanan070'@'%';
-GRANT ROLE 'user' TO 'sittha084'@'%';
+GRANT 'user' TO 'tinnapop023'@'%';
+GRANT 'user' TO 'wanassanan070'@'%';
+GRANT 'user' TO 'sittha084'@'%';
 
 SET DEFAULT ROLE 'user' TO 'tinnapop023'@'%';
 SET DEFAULT ROLE 'user' TO 'wanassanan070'@'%';
