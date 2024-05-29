@@ -36,6 +36,7 @@ CREATE TABLE status (
 
 DROP TRIGGER IF EXISTS updateFixedStatus;
 
+DELIMITER //
 CREATE TRIGGER updateFixedStatus
 BEFORE UPDATE
 ON status
@@ -45,11 +46,13 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Cannot update: this status is fixed status cause it cannot update or delete';
     END IF;
-END;
+END
+// DELIMITER; 
 
 
 DROP TRIGGER IF EXISTS deleteFixedStatus;
 
+DELIMITER //
 CREATE TRIGGER deleteFixedStatus
 BEFORE DELETE
 ON status
@@ -59,7 +62,8 @@ BEGIN
 	SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Cannot delete: this status is fixed status cause it cannot update or delete';
     END IF;
-END;
+END
+// DELIMITER; 
 
 INSERT INTO status (
     statusName,
