@@ -247,23 +247,11 @@ CREATE TABLE taskV3 (
 SET autocommit = off; 
 COMMIT;
 
-CREATE ROLE 'user';
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, REFERENCES, ALTER, SHOW DATABASES ON *.* TO 'user'@'%';
-
-CREATE USER 'tinnapop023'@'%' identified WITH mysql_native_password BY 'both-pl-1.mysql';
-CREATE USER 'wanassanan070'@'%' identified WITH mysql_native_password BY 'ploy-pl-1.mysql';
-CREATE USER 'sittha084'@'%' identified WITH mysql_native_password BY 'mink-pl-1.mysql';
-
-GRANT 'user' TO 'tinnapop023'@'%';
-GRANT 'user' TO 'wanassanan070'@'%';
-GRANT 'user' TO 'sittha084'@'%';
-
-SET DEFAULT ROLE 'user' TO 'tinnapop023'@'%';
-SET DEFAULT ROLE 'user' TO 'wanassanan070'@'%';
-SET DEFAULT ROLE 'user' TO 'sittha084'@'%';
-
 CREATE USER 'itb-kk-be' identified WITH mysql_native_password BY 'itb-kk';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`tasks` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`tasksV2` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`status` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`board` TO 'itb-kk-be'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV1` TO 'itb-kk-be'@'%';  
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV2` TO 'itb-kk-be'@'%';  
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV3` TO 'itb-kk-be'@'%';  
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`statusV2` TO 'itb-kk-be'@'%';  
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`statusV3` TO 'itb-kk-be'@'%';  
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`boardV2` TO 'itb-kk-be'@'%';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`boardV3` TO 'itb-kk-be'@'%';
