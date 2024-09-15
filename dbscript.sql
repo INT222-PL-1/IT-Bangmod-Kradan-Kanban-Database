@@ -244,9 +244,6 @@ CREATE TABLE taskV3 (
     PRIMARY KEY (taskId)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-SET autocommit = off; 
-COMMIT;
-
 DROP USER IF EXISTS `itb-kk-be`;
 CREATE USER 'itb-kk-be' identified WITH mysql_native_password BY 'itb-kk';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV1` TO 'itb-kk-be'@'%';  
@@ -256,3 +253,6 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`statusV2` TO 'itb-kk-be'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`statusV3` TO 'itb-kk-be'@'%';  
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`boardV2` TO 'itb-kk-be'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`boardV3` TO 'itb-kk-be'@'%';
+
+SET autocommit = off; 
+COMMIT;
