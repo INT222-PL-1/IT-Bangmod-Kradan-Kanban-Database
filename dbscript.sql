@@ -247,6 +247,7 @@ CREATE TABLE taskV3 (
 SET autocommit = off; 
 COMMIT;
 
+DROP USER IF EXISTS `itb-kk-be`;
 CREATE USER 'itb-kk-be' identified WITH mysql_native_password BY 'itb-kk';
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV1` TO 'itb-kk-be'@'%';  
 GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV2` TO 'itb-kk-be'@'%';  
