@@ -224,7 +224,7 @@ INSERT INTO statusV3 (
 VALUES 
 ('No Status', 'A status has not been assigned', '#999999', true),
 ('To Do','The task is included in the project','#3cb371', false),
-('In Progress','The task is being worked on','#ffa500', false),
+('Doing','The task is being worked on','#ffa500', false),
 ('Done','The task has been completed','#8142ff', true);
 
 CREATE TABLE taskV3 (
