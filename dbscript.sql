@@ -1,36 +1,37 @@
 CREATE DATABASE IF NOT EXISTS `itb-kk`;
 USE `itb-kk`;
 
-DROP TABLE IF EXISTS taskV1;
+DROP TABLE IF EXISTS task_v1;
 
-DROP TABLE IF EXISTS taskV2;
-DROP TABLE IF EXISTS statusV2;
-DROP TABLE IF EXISTS boardV2;
-DROP TRIGGER IF EXISTS updateFixedStatusV2;
-DROP TRIGGER IF EXISTS deleteFixedStatusV2;
+DROP TABLE IF EXISTS task_v2;
+DROP TABLE IF EXISTS status_v2;
+DROP TABLE IF EXISTS board_v2;
+DROP TRIGGER IF EXISTS trg_status_v2_update_predefined_status_before;
+DROP TRIGGER IF EXISTS trg_status_v2_delete_predefined_status_before;
 
-DROP TABLE IF EXISTS taskV3;
-DROP TABLE IF EXISTS statusV3;
-DROP TABLE IF EXISTS boardV3;
-DROP TABLE IF EXISTS userV3;
-DROP TRIGGER IF EXISTS updateFixedStatusV3;
-DROP TRIGGER IF EXISTS deleteFixedStatusV3;
+DROP TABLE IF EXISTS task_v3;
+DROP TABLE IF EXISTS status_v3;
+DROP TABLE IF EXISTS user_boards_v3;
+DROP TABLE IF EXISTS board_v3;
+DROP TABLE IF EXISTS user_v3;
+DROP TRIGGER IF EXISTS trg_status_v3_update_predefined_status_before;
+DROP TRIGGER IF EXISTS trg_status_v3_delete_predefined_status_before;
 
 
 # ======== Version 1 ========================================
 
-CREATE TABLE taskV1 (
-    taskId INT NOT NULL AUTO_INCREMENT,
-    taskTitle TEXT NOT NULL,
-    taskDescription TEXT(500),
-    taskAssignees TEXT,
-    taskStatus ENUM('NO_STATUS', 'TO_DO', 'DOING', 'DONE') DEFAULT 'NO_STATUS' NOT NULL,
-    createdOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updatedOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT `checkTaskV1TitleLengthIn_1-100` CHECK (char_length(taskTitle) <= 100 AND taskTitle <>''),
-    CONSTRAINT `checkTaskV1DescriptionLengthIn_1-500` CHECK (char_length(taskDescription) <= 500 AND taskDescription<>''),
-    CONSTRAINT `checkTaskV1AssigneesLengthIn_1-30` CHECK (char_length(taskAssignees) <= 30 AND taskAssignees<>''),
-    PRIMARY KEY (taskId)
+CREATE TABLE task_v1 (
+    task_id INT NOT NULL AUTO_INCREMENT,
+    task_title TEXT NOT NULL,
+    task_description TEXT(500),
+    task_assignees TEXT,
+    task_status ENUM('NO_STATUS', 'TO_DO', 'DOING', 'DONE') DEFAULT 'NO_STATUS' NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT `task_v1_title_length_min1_max100` CHECK (CHAR_LENGTH(task_title) <= 100 AND task_title <> ''),
+    CONSTRAINT `task_v1_description_length_min1_max100` CHECK (CHAR_LENGTH(task_description) <= 500 AND task_description <> ''),
+    CONSTRAINT `task_v1_assignees_length_min1_max30` CHECK (CHAR_LENGTH(task_assignees) <= 30 AND task_assignees <> ''),
+    PRIMARY KEY (task_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- INSERT INTO taskV1 (
@@ -51,22 +52,22 @@ CREATE TABLE taskV1 (
 
 # ======== Version 2 ========================================
 
-CREATE TABLE statusV2 (
-    statusId INT NOT NULL AUTO_INCREMENT,
-    statusName VARCHAR(50) UNIQUE NOT NULL,
-    statusDescription TEXT,
-    statusColor VARCHAR(7) DEFAULT '#999999',
-    is_fixed_status BOOLEAN DEFAULT false,
-      constraint `checkStatusV2NameLengthIn_1-50` CHECK (char_length(statusName) <= 50 AND statusName <> ''),
-      constraint `checkStatusV2DescriptionLengthIn_1-200` CHECK (char_length(statusDescription) <= 200 AND statusDescription <> ''),
-    PRIMARY KEY (statusId)
+CREATE TABLE status_v2 (
+    status_id INT NOT NULL AUTO_INCREMENT,
+    status_name VARCHAR(50) UNIQUE NOT NULL,
+    status_description TEXT,
+    status_color VARCHAR(7) DEFAULT '#999999',
+    is_predefined BOOLEAN DEFAULT false,
+    CONSTRAINT `status_v2_name_length_min1_max50` CHECK (CHAR_LENGTH(status_name) <= 50 AND status_name <> ''),
+    CONSTRAINT `status_v2_description_length_min1_max200` CHECK (CHAR_LENGTH(status_description) <= 200 AND status_description <> ''),
+    PRIMARY KEY (status_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO statusV2 (
-    statusName,
-    statusDescription,
-    statusColor,
-    is_fixed_status
+INSERT INTO status_v2 (
+    status_name,
+    status_description,
+    status_color,
+    is_predefined
 )
 VALUES 
 ('No Status', 'A status has not been assigned', '#4b5563', true),
@@ -79,14 +80,14 @@ VALUES
 
 DELIMITER $$
 
-CREATE TRIGGER updateFixedStatusV2
+CREATE TRIGGER trg_status_v2_update_predefined_status_before
 BEFORE UPDATE
-ON statusV2
+ON status_v2
 FOR EACH ROW 
 BEGIN
-	IF OLD.is_fixed_status = true AND NEW.is_fixed_status = true THEN
+	IF OLD.is_predefined = true AND NEW.is_predefined = true THEN
 	SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Cannot update: this status is fixed status cause it cannot update or delete';
+    SET MESSAGE_TEXT = 'Cannot update: this status is predefined status cause it cannot update or delete';
 	END IF;
 END$$
 
@@ -94,107 +95,143 @@ DELIMITER ;
 
 DELIMITER $$
 
-CREATE TRIGGER deleteFixedStatusV2
+CREATE TRIGGER trg_status_v2_delete_predefined_status_before
 BEFORE DELETE
-ON statusV2
+ON status_v2
 FOR EACH ROW 
 BEGIN
-	IF OLD.is_fixed_status = true THEN
+	IF OLD.is_predefined = true THEN
 	SIGNAL SQLSTATE '45000'
-    SET MESSAGE_TEXT = 'Cannot delete: this status is fixed status cause it cannot update or delete';
+    SET MESSAGE_TEXT = 'Cannot delete: this status is predefined status cause it cannot update or delete';
 	END IF;
 END$$
 
 DELIMITER ;
 
-CREATE TABLE boardV2 (
-    boardId INT NOT NULL AUTO_INCREMENT,
-    is_limit_tasks BOOLEAN default false,
-    task_limit_per_status INT default 10,
-    PRIMARY KEY (boardId)
+CREATE TABLE board_v2 (
+    board_id INT NOT NULL AUTO_INCREMENT,
+    is_task_limit_enabled BOOLEAN DEFAULT false,
+    task_limit_per_status INT DEFAULT 10,
+    PRIMARY KEY (board_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO boardV2 (
-    is_limit_tasks,
+INSERT INTO board_v2 (
+    is_task_limit_enabled,
     task_limit_per_status
 )
 VALUES 
 (true, 10);
 
-CREATE TABLE taskV2 (
-    taskId INT NOT NULL AUTO_INCREMENT,
-    taskTitle TEXT NOT NULL,
-    taskDescription TEXT,
-    taskAssignees TEXT,
-    statusId INT,
-    boardId INT NOT NULL,
-    createdOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updatedOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-      constraint `checkTaskV2TitleLengthIn_1-100` CHECK (char_length(taskTitle) <= 100 AND taskTitle <>''),
-      constraint `checkTaskV2DescriptionLengthIn_1-500` CHECK (char_length(taskDescription) <= 500 AND taskDescription<>''),
-      constraint `checkTaskV2AssigneesLengthIn_1-30` CHECK (char_length(taskAssignees) <= 30 AND taskAssignees<>''),
-    PRIMARY KEY (taskId),
-    CONSTRAINT fk_taskV2_statusV2 FOREIGN KEY (`statusId`) REFERENCES `statusV2`(`statusId`),
-    CONSTRAINT fk_taskV2_boardV2 FOREIGN KEY (`boardId`) REFERENCES `boardV2`(`boardId`)
+CREATE TABLE task_v2 (
+    task_id INT NOT NULL AUTO_INCREMENT,
+    task_title TEXT NOT NULL,
+    task_description TEXT,
+    task_assignees TEXT,
+    status_id INT,
+    board_id INT NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT `task_v2_title_length_min1_max100` CHECK (CHAR_LENGTH(task_title) <= 100 AND task_title <> ''),
+    CONSTRAINT `task_v2_description_length_min1_max500` CHECK (CHAR_LENGTH(task_description) <= 500 AND task_description <> ''),
+    CONSTRAINT `task_v2_assignees_length_min1_max30` CHECK (CHAR_LENGTH(task_assignees) <= 30 AND task_assignees <> ''),
+    PRIMARY KEY (task_id),
+    CONSTRAINT fk_task_v2_status_v2 FOREIGN KEY (`status_id`) REFERENCES `status_v2`(`status_id`),
+    CONSTRAINT fk_task_v2_board_v2 FOREIGN KEY (`board_id`) REFERENCES `board_v2`(`board_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO taskV2 (
-    taskId,
-    taskTitle,
-    statusId,
-    createdOn,
-    updatedOn,
-    boardId
-)
-VALUES
-(1, 'NS01', 1, '2024-05-14 09:00:00', '2024-05-14 09:00:00', 1),
-(2, 'TD01', 2, '2024-05-14 09:10:00', '2024-05-14 09:10:00', 1),
-(3, 'IP01', 3, '2024-05-14 09:20:00', '2024-05-14 09:20:00', 1),
-(4, 'TD02', 2, '2024-05-14 09:30:00', '2024-05-14 09:30:00', 1),
-(5, 'DO01', 7, '2024-05-14 09:40:00', '2024-05-14 09:40:00', 1),
-(6, 'IP02', 3, '2024-05-14 09:50:00', '2024-05-14 09:50:00', 1);
+-- INSERT INTO task_v2 (
+--     task_id,
+--     task_title,
+--     status_id,
+--     created_on,
+--     updated_on,
+--     board_id
+-- )
+-- VALUES
+-- (1, 'NS01', 1, '2024-05-14 09:00:00', '2024-05-14 09:00:00', 1),
+-- (2, 'TD01', 2, '2024-05-14 09:10:00', '2024-05-14 09:10:00', 1),
+-- (3, 'IP01', 3, '2024-05-14 09:20:00', '2024-05-14 09:20:00', 1),
+-- (4, 'TD02', 2, '2024-05-14 09:30:00', '2024-05-14 09:30:00', 1),
+-- (5, 'DO01', 7, '2024-05-14 09:40:00', '2024-05-14 09:40:00', 1),
+-- (6, 'IP02', 3, '2024-05-14 09:50:00', '2024-05-14 09:50:00', 1);
 
 
 
 # ======== Version 3 ========================================
 
--- CREATE TABLE userV3 (
+CREATE TABLE user_v3 (
+    oid CHAR(36) NOT NULL,
+    name TEXT NOT NULL,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT `user_v3_name_length_min1_max100` CHECK (CHAR_LENGTH(name) <= 100 AND name <> ''),
+    CONSTRAINT `user_v3_username_length_min1_max50` CHECK (CHAR_LENGTH(username) <= 50 AND username <> ''),
+    CONSTRAINT `user_v3_email_length_min1_max30` CHECK (CHAR_LENGTH(email) <= 30 AND email <> ''),
+    PRIMARY KEY (oid)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE boardV3 (
-    boardId VARCHAR(10) NOT NULL,
-    owner_oid VARCHAR(36) NOT NULL,
-    name VARCHAR(120) NOT NULL, 
-    is_limit_tasks BOOLEAN DEFAULT false,
+CREATE TABLE board_v3 (
+    board_id CHAR(10) NOT NULL,
+    owner_oid CHAR(36) NOT NULL,
+    board_name TEXT NOT NULL, 
+    board_visibility ENUM("PRIVATE", "PUBLIC") DEFAULT 'PRIVATE',
+    is_task_limit_enabled BOOLEAN DEFAULT false,
     task_limit_per_status INT DEFAULT 10,
-    default_statuses_config VARCHAR(5) NULL DEFAULT '11',
-    PRIMARY KEY (boardId)
+    default_status_config CHAR(5) NULL DEFAULT '11',
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT `board_v3_name_length_min1_max120` CHECK (CHAR_LENGTH(board_name) <= 120 AND board_name <> ''),
+    PRIMARY KEY (board_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE statusV3 (
-    statusId INT NOT NULL AUTO_INCREMENT,
-    statusName VARCHAR(50) NOT NULL,
-    statusDescription TEXT,
-    statusColor VARCHAR(7) DEFAULT '#999999',
-    is_fixed_status BOOLEAN DEFAULT false,
-    boardId VARCHAR(10) NULL,
-    CONSTRAINT `checkStatusV3NameInLength_1-50` CHECK (char_length(statusName) <= 50 AND statusName <>''),
-    CONSTRAINT `checkStatusV3DescriptionInLength_1-200` CHECK (char_length(statusDescription) <= 200 AND statusDescription<>''),
-    PRIMARY KEY (statusId),
-    CONSTRAINT fk_statusV3_boardV3 FOREIGN KEY (`boardId`) REFERENCES `boardV3` (`boardId`)
+CREATE TABLE user_boards_v3 (
+    user_oid CHAR(36) NOT NULL,
+    board_id CHAR(10) NOT NULL,
+    user_permission ENUM("read", "write") NOT NULL,
+    PRIMARY KEY (user_oid, board_id, user_permission),
+    CONSTRAINT `fk_user_v3_board_v3_user_oid` FOREIGN KEY (`user_oid`) REFERENCES `user_v3`(`oid`),
+    CONSTRAINT `fk_user_v3_board_v3_board_id` FOREIGN KEY (`board_id`) REFERENCES `board_v3`(`board_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- INSERT INTO boardV3 (
+--     boardId,
+--     owner_oid,
+--     name,
+--     is_limit_tasks,
+--     task_limit_per_status,
+--     default_statuses_config
+-- )
+-- VALUES 
+-- ('a01s28f3qq', '0712334f-4982-4d26-a7ef-4ad0ff53cb18', 'ITBKK PICHET personal board', false, 10, '11');
+
+CREATE TABLE status_v3 (
+    status_id INT NOT NULL AUTO_INCREMENT,
+    status_name TEXT NOT NULL,
+    status_description TEXT,
+    status_color VARCHAR(7) DEFAULT '#999999',
+    is_predefined BOOLEAN DEFAULT false,
+    board_id CHAR(10) NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT `status_v3_name_length_min1_max50` CHECK (CHAR_LENGTH(status_name) <= 50 AND status_name <> ''),
+    CONSTRAINT `status_v3_description_length_min1_max200` CHECK (CHAR_LENGTH(status_description) <= 200 AND status_description <> ''),
+    PRIMARY KEY (status_id),
+    CONSTRAINT fk_status_v3_board_v3 FOREIGN KEY (`board_id`) REFERENCES `board_v3` (`board_id`)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 DELIMITER $$
 
-CREATE TRIGGER updateFixedStatusV3
+CREATE TRIGGER trg_status_v3_update_predefined_status_before
 BEFORE UPDATE
-ON statusV3
+ON status_v3
 FOR EACH ROW 
 BEGIN
-    IF OLD.is_fixed_status = true AND NEW.is_fixed_status = true THEN
+    IF OLD.is_predefined = true AND NEW.is_predefined = true THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot update: this status is fixed status cause it cannot update or delete';
+        SET MESSAGE_TEXT = 'Cannot update: this status is predefined status cause it cannot update or delete';
     END IF;
 END$$
 
@@ -202,24 +239,24 @@ DELIMITER ;
 
 DELIMITER $$
 
-CREATE TRIGGER deleteFixedStatusV3
+CREATE TRIGGER trg_status_v3_delete_predefined_status_before
 BEFORE DELETE
-ON statusV3
+ON status_v3
 FOR EACH ROW 
 BEGIN
-    IF OLD.is_fixed_status = true THEN
+    IF OLD.is_predefined = true THEN
 	    SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot delete: this status is fixed status cause it cannot update or delete';
+        SET MESSAGE_TEXT = 'Cannot delete: this status is predefined status cause it cannot update or delete';
     END IF;
 END$$
 
 DELIMITER ;
 
-INSERT INTO statusV3 (
-    statusName,
-    statusDescription,
-    statusColor,
-    is_fixed_status
+INSERT INTO status_v3 (
+    status_name,
+    status_description,
+    status_color,
+    is_predefined
 )
 VALUES 
 ('No Status', 'A status has not been assigned', '#999999', true),
@@ -227,32 +264,26 @@ VALUES
 ('Doing','The task is being worked on','#ffa500', false),
 ('Done','The task has been completed','#8142ff', true);
 
-CREATE TABLE taskV3 (
-    taskId INT NOT NULL AUTO_INCREMENT,
-    taskTitle TEXT NOT NULL,
-    taskDescription TEXT,
-    taskAssignees TEXT,
-    statusId INT NOT NULL,
-    boardId VARCHAR(10) NOT NULL,
-    createdOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updatedOn TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT `checkTaskV3TitleLengthIn_1-100` CHECK (char_length(taskTitle) <= 100 AND taskTitle <>''),
-    CONSTRAINT `checkTaskV3DescriptionLengthIn_1-500` CHECK (char_length(taskDescription) <= 500 AND taskDescription<>''),
-    CONSTRAINT `checkTaskV3AssigneesLengthIn_1-30` CHECK (char_length(taskAssignees) <= 30 AND taskAssignees<>''),
-    CONSTRAINT fk_taskV3_statusV3 FOREIGN KEY (`statusId`) REFERENCES `statusV3`(`statusId`),
-    CONSTRAINT fk_taskV3_boardV3 FOREIGN KEY (`boardId`) REFERENCES `boardV3`(`boardId`),
-    PRIMARY KEY (taskId)
+CREATE TABLE task_v3 (
+    task_id INT NOT NULL AUTO_INCREMENT,
+    task_title TEXT NOT NULL,
+    task_description TEXT,
+    task_assignees TEXT,
+    status_id INT NOT NULL,
+    board_id CHAR(10) NOT NULL,
+    created_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT `task_v3_title_length_min1_max100` CHECK (CHAR_LENGTH(task_title) <= 100 AND task_title <> ''),
+    CONSTRAINT `task_v3_description_length_min1_max500` CHECK (CHAR_LENGTH(task_description) <= 500 AND task_description <> ''),
+    CONSTRAINT `task_v3_assignees_length_min1_max30` CHECK (CHAR_LENGTH(task_assignees) <= 30 AND task_assignees <> ''),
+    PRIMARY KEY (task_id),
+    CONSTRAINT fk_task_v3_status_v3 FOREIGN KEY (`status_id`) REFERENCES `status_v3`(`status_id`),
+    CONSTRAINT fk_task_v3_board_v3 FOREIGN KEY (`board_id`) REFERENCES `board_v3`(`board_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-DROP USER IF EXISTS `itb-kk-be`;
-CREATE USER 'itb-kk-be' identified WITH mysql_native_password BY 'itb-kk';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV1` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV2` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`taskV3` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`statusV2` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`statusV3` TO 'itb-kk-be'@'%';  
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`boardV2` TO 'itb-kk-be'@'%';
-GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.`boardV3` TO 'itb-kk-be'@'%';
 
 SET autocommit = off; 
 COMMIT;
+
+DROP USER IF EXISTS `itb-kk-be`;
+CREATE USER 'itb-kk-be' IDENTIFIED WITH mysql_native_password BY 'itb-kk';
+GRANT SELECT, INSERT, UPDATE, DELETE ON `itb-kk`.* TO 'itb-kk-be'@'%'; 
