@@ -44,3 +44,4 @@ jobs:
             script: |
               docker pull wanassanan/itb-kk-database:latest
               docker compose -f ./INT221/project/docker-compose.yml up -d --no-deps --build database
+              docker compose up -d --force-recreate backend
