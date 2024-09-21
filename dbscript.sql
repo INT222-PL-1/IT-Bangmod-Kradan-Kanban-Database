@@ -168,7 +168,7 @@ CREATE TABLE user_v3 (
     updated_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT `user_v3_name_length_min1_max100` CHECK (CHAR_LENGTH(name) <= 100 AND name <> ''),
     CONSTRAINT `user_v3_username_length_min1_max50` CHECK (CHAR_LENGTH(username) <= 50 AND username <> ''),
-    CONSTRAINT `user_v3_email_length_min1_max30` CHECK (CHAR_LENGTH(email) <= 30 AND email <> ''),
+    CONSTRAINT `user_v3_email_length_min1_max50` CHECK (CHAR_LENGTH(email) <= 50 AND email <> ''),
     PRIMARY KEY (oid)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
