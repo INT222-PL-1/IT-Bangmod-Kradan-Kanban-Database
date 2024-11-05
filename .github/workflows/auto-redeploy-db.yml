@@ -1,6 +1,7 @@
 name: Auto Redeploy
 run-name: "@${{ github.actor }} was pushed up a new update. Auto-Redeploy START!"
 on: 
+  workflow_dispatch:
   push:
     branches:
     - 'main'
