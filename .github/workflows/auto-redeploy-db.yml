@@ -1,4 +1,4 @@
-name: Database
+name: Auto Redeploy
 run-name: "@${{ github.actor }} was pushed up a new update. Auto-Redeploy START!"
 on: 
   push:
@@ -7,8 +7,7 @@ on:
     - 'develop/**'
   
 jobs:
-
-  Docker-Image-Build:
+  Automate-Deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -29,19 +28,5 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: wanassanan/itb-kk-database:latest
-
-  SSH-Remote-Deploy-Database:
-    runs-on: ubuntu-latest
-    needs: Docker-Image-Build
-    steps: 
-        - name: executing remote ssh commands using password
-          uses: appleboy/ssh-action@master
-          with:
-            host: ${{ secrets.SSH_HOST }}
-            port: ${{ secrets.SSH_PORT }}
-            username: ${{ secrets.SSH_USER }}
-            password: ${{ secrets.SSH_PASSWORD }}
-            script: |
-              docker pull wanassanan/itb-kk-database:latest
-              docker compose -f ./INT221/project/docker-compose.yml up -d --no-deps --build database
-              docker compose -f ./INT221/project/docker-compose.yml up -d --force-recreate backend
+      - name: Trigger redeploy
+        run: 'curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" https://intproj23.sit.kmutt.ac.th/pl1/watchtower/v1/update'
