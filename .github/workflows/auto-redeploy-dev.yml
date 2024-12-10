@@ -30,4 +30,6 @@ jobs:
           push: true
           tags: wanassanan/itb-kk-database:development
       - name: Trigger redeploy
-        run: 'curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" http://20.243.133.115/watchtower/v1/update'
+        run: |
+          echo "${{ secrets.DEV_SSL_CERT }}" > "${HOME}/certificate.crt"
+          curl -H "Authorization: Bearer ${{ secrets.WATCHTOWER_TOKEN }}" --cacert "${HOME}/certificate.crt" https://20.243.133.115/pl1/watchtower/v1/update
