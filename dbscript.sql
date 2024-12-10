@@ -1,21 +1,9 @@
 CREATE DATABASE IF NOT EXISTS `itb-kk`;
 USE `itb-kk`;
 
-DROP TABLE IF EXISTS task_v1;
-
-DROP TABLE IF EXISTS task_v2;
-DROP TABLE IF EXISTS status_v2;
-DROP TABLE IF EXISTS board_v2;
-DROP TRIGGER IF EXISTS trg_status_v2_update_predefined_status_before;
-DROP TRIGGER IF EXISTS trg_status_v2_delete_predefined_status_before;
-
-DROP TABLE IF EXISTS task_v3;
-DROP TABLE IF EXISTS status_v3;
-DROP TABLE IF EXISTS user_boards_v3;
-DROP TABLE IF EXISTS board_v3;
-DROP TABLE IF EXISTS user_v3;
-DROP TRIGGER IF EXISTS trg_status_v3_update_predefined_status_before;
-DROP TRIGGER IF EXISTS trg_status_v3_delete_predefined_status_before;
+DROP DATABASE IF EXISTS `itb-kk`;
+CREATE DATABASE IF NOT EXISTS `itb-kk`;
+USE `itb-kk`;
 
 
 # ======== Version 1 ========================================
@@ -33,21 +21,6 @@ CREATE TABLE task_v1 (
     CONSTRAINT `task_v1_assignees_length_min1_max30` CHECK (CHAR_LENGTH(task_assignees) <= 30 AND task_assignees <> ''),
     PRIMARY KEY (task_id)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- INSERT INTO taskV1 (
---     taskTitle,
---     taskDescription,
---     taskAssignees,
---     taskStatus,
---     createdOn,
---     updatedOn
--- )
--- VALUES 
--- ('TaskTitle1TaskTitle2TaskTitle3TaskTitle4TaskTitle5TaskTitle6TaskTitle7TaskTitle8TaskTitle9TaskTitle0','Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti1Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti2Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti3Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti4Descripti1Descripti2Descripti3Descripti4Descripti5Descripti6Descripti7Descripti8Descripti9Descripti5','Assignees1Assignees2Assignees3','NO_STATUS','2024-04-22 09:00:00','2024-04-22 09:00:00'),
--- ('Repository', null, null,'TO_DO','2024-04-22  09:05:00','2024-04-22 14:00:00'),
--- ('ดาต้าเบส','ສ້າງຖານຂໍ້ມູນ','あなた、彼、彼女 (私ではありません)','DOING','2024-04-22  09:10:00','2024-04-25 00:00:00'),
--- ('_Infrastructure_','_Setup containers_','ไก่งวง กับ เพนกวิน','DONE','2024-04-22 09:15:00','2024-04-22 10:00:00');
-
 
 
 # ======== Version 2 ========================================
@@ -139,23 +112,6 @@ CREATE TABLE task_v2 (
     CONSTRAINT fk_task_v2_board_v2 FOREIGN KEY (`board_id`) REFERENCES `board_v2`(`board_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- INSERT INTO task_v2 (
---     task_id,
---     task_title,
---     status_id,
---     created_on,
---     updated_on,
---     board_id
--- )
--- VALUES
--- (1, 'NS01', 1, '2024-05-14 09:00:00', '2024-05-14 09:00:00', 1),
--- (2, 'TD01', 2, '2024-05-14 09:10:00', '2024-05-14 09:10:00', 1),
--- (3, 'IP01', 3, '2024-05-14 09:20:00', '2024-05-14 09:20:00', 1),
--- (4, 'TD02', 2, '2024-05-14 09:30:00', '2024-05-14 09:30:00', 1),
--- (5, 'DO01', 7, '2024-05-14 09:40:00', '2024-05-14 09:40:00', 1),
--- (6, 'IP02', 3, '2024-05-14 09:50:00', '2024-05-14 09:50:00', 1);
-
-
 
 # ======== Version 3 ========================================
 
@@ -189,22 +145,13 @@ CREATE TABLE board_v3 (
 CREATE TABLE user_boards_v3 (
     user_oid CHAR(36) NOT NULL,
     board_id CHAR(10) NOT NULL,
-    user_permission ENUM("read", "write") NOT NULL,
-    PRIMARY KEY (user_oid, board_id, user_permission),
+    access_right ENUM("OWNER", "READ", "WRITE") NOT NULL,
+    invite_status ENUM("PENDING", "CANCELED", "JOINED") DEFAULT 'PENDING',
+    added_on TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    PRIMARY KEY (user_oid, board_id),
     CONSTRAINT `fk_user_v3_board_v3_user_oid` FOREIGN KEY (`user_oid`) REFERENCES `user_v3`(`oid`),
     CONSTRAINT `fk_user_v3_board_v3_board_id` FOREIGN KEY (`board_id`) REFERENCES `board_v3`(`board_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- INSERT INTO boardV3 (
---     boardId,
---     owner_oid,
---     name,
---     is_limit_tasks,
---     task_limit_per_status,
---     default_statuses_config
--- )
--- VALUES 
--- ('a01s28f3qq', '0712334f-4982-4d26-a7ef-4ad0ff53cb18', 'ITBKK PICHET personal board', false, 10, '11');
 
 CREATE TABLE status_v3 (
     status_id INT NOT NULL AUTO_INCREMENT,
@@ -220,7 +167,6 @@ CREATE TABLE status_v3 (
     PRIMARY KEY (status_id),
     CONSTRAINT fk_status_v3_board_v3 FOREIGN KEY (`board_id`) REFERENCES `board_v3` (`board_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 
 DELIMITER $$
 
@@ -279,6 +225,15 @@ CREATE TABLE task_v3 (
     PRIMARY KEY (task_id),
     CONSTRAINT fk_task_v3_status_v3 FOREIGN KEY (`status_id`) REFERENCES `status_v3`(`status_id`),
     CONSTRAINT fk_task_v3_board_v3 FOREIGN KEY (`board_id`) REFERENCES `board_v3`(`board_id`)
+) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE task_attachment_v3 (
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(100) NOT NULL,
+    size INT NOT NULL,
+    task_id INT NOT NULL,
+    PRIMARY KEY (name, task_id),
+    CONSTRAINT `fk_task_attachment_v3_task_v3` FOREIGN KEY (`task_id`) REFERENCES `task_v3`(`task_id`)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET autocommit = off; 
